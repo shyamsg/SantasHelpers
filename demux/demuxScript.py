@@ -433,6 +433,7 @@ else: ## Single end dealing
 			f1=gzip.open(read1file)
 		else:
 			f1=open(read1file)
+		print "starting loop"
 		for (l1,) in zip(f1):
 			print l1
 			sys.stdout.flush()
