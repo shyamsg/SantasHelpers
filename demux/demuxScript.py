@@ -434,7 +434,6 @@ else: ## Single end dealing
 		else:
 			f1=open(read1file)
 		for l1 in f1:
-			print l1
 			sys.stdout.flush()
 			if (curcnt == 0):
 				if (len(l1) == 0 or l1[0] != '@'):
