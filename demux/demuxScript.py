@@ -231,11 +231,11 @@ if not isSingleEnd: ## Paired end dealing
 			sname2 = ''
 			curcnt = 0
 			print 'Processing files:', read1file, read2file
-			if read1file[0:-3] == '.gz':
+			if read1file[-3:] == '.gz':
 				f1=gzip.open(read1file)
 			else:
 				f1=open(read1file)
-			if (read2file[0:-3] == '.gz'):
+			if (read2file[-3:] == '.gz'):
 				f2=gzip.open(read2file)
 			else:
 				f2=open(read2file)
@@ -305,11 +305,11 @@ if not isSingleEnd: ## Paired end dealing
 		read1file = args.left
 		read2file = args.right
 		print 'Processing files:', read1file, read2file
-		if (read1file[0:-3] == '.gz'):
+		if (read1file[-3:] == '.gz'):
 		    f1=gzip.open(read1file)
 		else:
 		    f1=open(read1file)
-		if (read2file[0:-3] == '.gz'):
+		if (read2file[-3:] == '.gz'):
 		    f2=gzip.open(read2file)
 		else:
 		    f2=open(read2file)
@@ -379,7 +379,7 @@ else: ## Single end dealing
 			sname1 = ''
 			curcnt = 0
 			print 'Processing files:', read1file
-			if (read1file[0:-3] == '.gz'):
+			if (read1file[-3:] == '.gz'):
 			    f1=gzip.open(read1file)
 			else:
 			    f1=open(read1file)
@@ -430,7 +430,7 @@ else: ## Single end dealing
 		sname1 = ''
 		curcnt = 0
 		print 'Processing files:', read1file
-		if (read1file[-3:0] == '.gz'):
+		if (read1file[-3:] == '.gz'):
 			print "opening gzip file"
 			f1=gzip.open(read1file)
 		else:
