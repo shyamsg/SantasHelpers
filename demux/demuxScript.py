@@ -431,8 +431,10 @@ else: ## Single end dealing
 		curcnt = 0
 		print 'Processing files:', read1file
 		if (read1file[0:-3] == '.gz'):
+			print "opening gzip file"
 		    f1=gzip.open(read1file)
 		else:
+			print "normal file"
 		    f1=open(read1file)
 		for (l1,) in zip(f1):
 			if (curcnt == 0):
