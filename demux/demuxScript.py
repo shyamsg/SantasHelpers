@@ -430,7 +430,7 @@ else: ## Single end dealing
 		sname1 = ''
 		curcnt = 0
 		print 'Processing files:', read1file
-		if (read1file[0:-3] == '.gz'):
+		if (read1file[-3:0] == '.gz'):
 			print "opening gzip file"
 			f1=gzip.open(read1file)
 		else:
