@@ -147,7 +147,7 @@ if (__name__=='__main__'):
 	parser.add_argument('-1', '--infirst', metavar='Read1File', type=str, dest='left', help='Input read1 fastq (zipped or not) filename OR List of read1 fastqs', required=True)
 	parser.add_argument('-2', '--insecond', metavar='Read2File', type=str, dest='right', help='Input fastq (zipped or not) filename OR List of read2 fastqs', required=False, default="")
 	parser.add_argument('-s', '--adapters', metavar='AdapterFile', type=str, dest='sidfname', help='Adapter file (tab separated)', required=True)
-	parser.add_argument('-d', '--DiscardSingle', dest='nosingle', help='Discard single ends', action='store_true')
+	parser.add_argument('-d', '--DiscardSingle', dest='nosingle', help='Add the single end reads to the discard pile', action='store_true')
 	parser.add_argument('-u', '--unzipoutput', dest='unzipout', help='Unzipped output', action='store_true')
 	parser.add_argument('-e', '--enzymeSuffix', dest='enzyme', help='Enzyme Sequence (part that shows up in reads)', required=False, default='TGCAG')
 	parser.add_argument('-m', '--mismatch', type=int, metavar="SingleMismatch", dest='singleMismatch', help='Max. mismatches in single end', required=False, default=1)
@@ -195,8 +195,15 @@ sidfile.close()
 
 fhands_1 = {}
 fhands_2 = {}
-fhands_s = {}
+fhands_s_good = {}
+fhands_s_bad = {}
+fhand_discard_1 = None
+fhand_discard_2 = None
+
 if (args.unzipout):
+	fhand_discard_1 = open("DiscardReads_lib"+args.lib+"_1.fq", "w")
+	if not isSingleEnd:
+		fhand_discard_2 = open("DiscardReads_lib"+args.lib+"_2.fq", "w")
 	for name in np.unique(sids.values()):
 		ftemp = open(name+'_1.fq', 'w')
 		fhands_1[name] = ftemp
@@ -204,9 +211,14 @@ if (args.unzipout):
             ftemp = open(name+'_2.fq', 'w')
             fhands_2[name] = ftemp
             if (not args.nosingle):
-                ftemp = open(name+'_single.fq', 'w')
-                fhands_s[name] = ftemp
+                ftemp = open(name+'_single_good.fq', 'w')
+                fhands_s_good[name] = ftemp
+                ftemp = open(name+'_single_bad.fq', 'w')
+                fhands_s_bad[name] = ftemp
 else:
+	fhand_discard_1 = gzip.open("DiscardReads_lib"+args.lib+"_1.fq.gz", "w")
+	if (not isSingleEnd):
+		fhand_discard_2 = gzip.open("DiscardReads_lib"+args.lib+"_2.fq.gz", "w")
 	for name in np.unique(sids.values()):
 		ftemp = gzip.open(name+'_1.fq.gz', 'w')
 		fhands_1[name] = ftemp
@@ -214,8 +226,10 @@ else:
             ftemp = gzip.open(name+'_2.fq.gz', 'w')
             fhands_2[name] = ftemp
             if (not args.nosingle):
-                ftemp = gzip.open(name+'_single.fq.gz', 'w')
-                fhands_s[name] = ftemp
+                ftemp = gzip.open(name+'_single_good.fq.gz', 'w')
+                fhands_s_good[name] = ftemp
+                ftemp = gzip.open(name+'_single_bad.fq.gz', 'w')
+                fhands_s_bad[name] = ftemp
 
 cntReads = 0
 success = 0
@@ -272,6 +286,7 @@ if not isSingleEnd: ## Paired end dealing
 					qual1 = l1.strip()
 					qual2 = l2.strip()
 					(nearest, distread1, distread2) = nearestNeighPaired(seq1, seq2, sids, enzLength, ambiguousEnz)
+					discard = False
 					if (nearest != None):
 						if (distread1 + distread2) <= args.pairMismatch:
 							successPairs += 1
@@ -282,12 +297,26 @@ if not isSingleEnd: ## Paired end dealing
 						elif (not args.nosingle):
 							if distread1 <= args.singleMismatch:
 								success += 1
-								fhands_s[sids[nearest]].write('@'+sname1+'\n')
-								fhands_s[sids[nearest]].write(seq1[len(nearest):]+'\n+\n'+qual1[len(nearest):]+'\n')
+								fhands_s_good[sids[nearest]].write('@'+sname1+'\n')
+								fhands_s_good[sids[nearest]].write(seq1[len(nearest):]+'\n+\n'+qual1[len(nearest):]+'\n')
+								fhands_s_bad[sids[nearest]].write('@'+sname2+'\n')
+								fhands_s_bad[sids[nearest]].write(seq2[len(nearest):]+'\n+\n'+qual2[len(nearest):]+'\n')
 							elif distread2 <= args.singleMismatch:
 								success += 1
-								fhands_s[sids[nearest]].write('@'+sname2+'\n')
-								fhands_s[sids[nearest]].write(seq2[len(nearest):]+'\n+\n'+qual2[len(nearest):]+'\n')
+								fhands_s_good[sids[nearest]].write('@'+sname2+'\n')
+								fhands_s_good[sids[nearest]].write(seq2[len(nearest):]+'\n+\n'+qual2[len(nearest):]+'\n')
+								fhands_s_bad[sids[nearest]].write('@'+sname1+'\n')
+								fhands_s_bad[sids[nearest]].write(seq1[len(nearest):]+'\n+\n'+qual1[len(nearest):]+'\n')
+							else: discard = True
+						else:
+							discard = True
+					else:
+						discard = True
+					if discard:
+						fhand_discard_1.write('@'+sname1+'\n')
+						fhand_discard_1.write(seq1+'\n+\n'+qual1+'\n')
+						fhand_discard_2.write('@'+sname2+'\n')
+						fhand_discard_2.write(seq2+'\n+\n'+qual2+'\n')
 					curcnt = 0
 					sname1 = ''
 					sname2 = ''
@@ -346,6 +375,7 @@ if not isSingleEnd: ## Paired end dealing
 				qual1 = l1.strip()
 				qual2 = l2.strip()
 				(nearest, distread1, distread2) = nearestNeighPaired(seq1, seq2, sids, enzLength, ambiguousEnz)
+				discard = False
 				if (nearest != None):
 					if (distread1 + distread2) <= args.pairMismatch:
 						successPairs += 1
@@ -356,12 +386,26 @@ if not isSingleEnd: ## Paired end dealing
 					elif (not args.nosingle):
 						if distread1 <= args.singleMismatch:
 							success += 1
-							fhands_s[sids[nearest]].write('@'+sname1+'\n')
-							fhands_s[sids[nearest]].write(seq1[len(nearest):]+'\n+\n'+qual1[len(nearest):]+'\n')
+							fhands_s_good[sids[nearest]].write('@'+sname1+'\n')
+							fhands_s_good[sids[nearest]].write(seq1[len(nearest):]+'\n+\n'+qual1[len(nearest):]+'\n')
+							fhands_s_bad[sids[nearest]].write('@'+sname2+'\n')
+							fhands_s_bad[sids[nearest]].write(seq2[len(nearest):]+'\n+\n'+qual2[len(nearest):]+'\n')
 						elif distread2 <= args.singleMismatch:
 							success += 1
-							fhands_s[sids[nearest]].write('@'+sname2+'\n')
-							fhands_s[sids[nearest]].write(seq2[len(nearest):]+'\n+\n'+qual2[len(nearest):]+'\n')
+							fhands_s_good[sids[nearest]].write('@'+sname2+'\n')
+							fhands_s_good[sids[nearest]].write(seq2[len(nearest):]+'\n+\n'+qual2[len(nearest):]+'\n')
+							fhands_s_bad[sids[nearest]].write('@'+sname1+'\n')
+							fhands_s_bad[sids[nearest]].write(seq1[len(nearest):]+'\n+\n'+qual1[len(nearest):]+'\n')
+						else: discard = True
+					else:
+						discard = True
+				else:
+					discard = True
+				if discard:
+					fhand_discard_1.write('@'+sname1+'\n')
+					fhand_discard_1.write(seq1+'\n+\n'+qual1+'\n')
+					fhand_discard_2.write('@'+sname2+'\n')
+					fhand_discard_2.write(seq2+'\n+\n'+qual2+'\n')
 				curcnt = 0
 				sname1 = ''
 				sname2 = ''
@@ -410,11 +454,17 @@ else: ## Single end dealing
 				elif (curcnt == 3):
 					qual1 = l1.strip()
 					(nearest, distread1) = nearestNeighSingle(seq1, sids, enzLength, ambiguousEnz)
+					discard = False
 					if (nearest != None):
 						if distread1 <= args.singleMismatch:
 							success += 1
 							fhands_1[sids[nearest]].write('@'+sname1+'\n')
 							fhands_1[sids[nearest]].write(seq1[len(nearest):]+'\n+\n'+qual1[len(nearest):]+'\n')
+						else: discard = True
+					else: discard = True
+					if discard:
+						fhand_discard_1.write('@'+sname1+'\n')
+						fhand_discard_1.write(seq1+'\n+\n'+qual1+'\n')
 					curcnt = 0
 					sname1 = ''
 					sname2 = ''
@@ -461,11 +511,17 @@ else: ## Single end dealing
 			elif (curcnt == 3):
 				qual1 = l1.strip()
 				(nearest, distread1) = nearestNeighSingle(seq1, sids, enzLength, ambiguousEnz)
+				discard = False
 				if (nearest != None):
 					if distread1 <= args.singleMismatch:
 						success += 1
 						fhands_1[sids[nearest]].write('@'+sname1+'\n')
 						fhands_1[sids[nearest]].write(seq1[len(nearest):]+'\n+\n'+qual1[len(nearest):]+'\n')
+					else: discard = True
+				else: discard = True
+				if discard:
+					fhand_discard_1.write('@'+sname1+'\n')
+					fhand_discard_1.write(seq1+'\n+\n'+qual1+'\n')
 				curcnt = 0
 				sname1 = ''
 				sname2 = ''
@@ -476,11 +532,15 @@ else: ## Single end dealing
 		f1.close()
 		print "Done processing files", read1file
 
+fhand_discard_1.close()
+if not isSingleEnd:
+	fhand_discard_2.close()
 for name in np.unique(sids.values()):
 	fhands_1[name].close()
-	if not isSingleEnd:
-		fhands_2[name].close()
-		if (not args.nosingle):
-			fhands_s[name].close()
+    if (not isSingleEnd):
+        fhands_2[name].close()
+        if (not args.nosingle):
+            fhands_s_good[name].close()
+            fhands_s_bad[name].close()
 
 print 'Number of reads processed:', success, '/', cntReads
