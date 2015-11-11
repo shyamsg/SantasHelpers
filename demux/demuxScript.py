@@ -246,6 +246,7 @@ if not isSingleEnd: ## Paired end dealing
 					elif (len(l1) == 0 or len(l2) == 0 or l1[0] != '@' or l2[0] != '@'):
 						print 'File format issues in input file.'
 						print 'Read 1 is ', l1, ' while read 2 is', l2
+						print 'Read', cntReads, 'reads.'
 						sys.exit(7)
 					l1=l1.strip()
 					l2=l2.strip()
@@ -319,6 +320,7 @@ if not isSingleEnd: ## Paired end dealing
 				elif (len(l1) == 0 or len(l2) == 0 or l1[0] != '@' or l2[0] != '@'):
 					print 'File format issues in input file.'
 					print 'Read 1 is ', l1, ' while read 2 is', l2
+					print 'Read', cntReads, 'reads.'
 					sys.exit(7)
 				l1=l1.strip()
 				l2=l2.strip()
@@ -386,6 +388,7 @@ else: ## Single end dealing
 					if (len(l1) == 0 or l1[0] != '@'):
 						print 'File format issues in input file.'
 						print 'Read 1 is ', l1
+						print 'Read', cntReads, 'reads.'
 						sys.exit(7)
 					l1=l1.strip()
 					if (sname1 == ''):
@@ -435,6 +438,7 @@ else: ## Single end dealing
 				if (len(l1) == 0 or l1[0] != '@'):
 					print 'File format issues in input file.'
 					print 'Read 1 is ', l1
+					print 'Read', cntReads, 'reads.'
 					sys.exit(7)
 				l1=l1.strip()
 				if (sname1 == ''):
