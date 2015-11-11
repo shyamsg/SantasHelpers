@@ -89,7 +89,7 @@ def nearestNeighPaired(read1str, read2str, adapters, enzymeLength, ambiguity=Fal
 		elif cd == minDist:
 			numnearest += 1
 			nearest = None
-	if numnearest != 1: return None ## More than 1 equally good match
+	if numnearest != 1: return (None, None) ## More than 1 equally good match
 	return (nearest, mind1, mind2)
 
 ## Functions
@@ -138,7 +138,7 @@ def nearestNeighSingle(read1str, adapters, enzymeLength, ambiguity=False):
 		elif cd == minDist:
 			numnearest += 1
 			nearest = None
-	if numnearest != 1: return None ## More than 1 equally good match
+	if numnearest != 1: return (None, None) ## More than 1 equally good match
 	return (nearest, mind1)
 
 if (__name__=='__main__'):
