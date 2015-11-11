@@ -159,8 +159,8 @@ isSingleEnd = (args.right == "")
 ## Check for sanity of single end settings
 if isSingleEnd:
 	print "Single end processing. Only using single end mismatch of", args.singleMismatch
-        if args.nosingle:
-	print "The -d option is ignored since this is single end reads."
+	if args.nosingle:
+		print "The -d option is ignored since this is single end reads."
 else:
 	print "Paired end processing. Using single end mismatch of", args.singleMismatch
 	print "and paired end mismatch of", args.pairMismatch,"."
@@ -381,7 +381,7 @@ else: ## Single end dealing
 			    f1=gzip.open(read1file)
 			else:
 			    f1=open(read1file)
-			for l1 in zip(f1):
+			for (l1,) in zip(f1):
 				if (curcnt == 0):
 					if (len(l1) == 0 or l1[0] != '@'):
 						print 'File format issues in input file.'
@@ -430,7 +430,7 @@ else: ## Single end dealing
 		    f1=gzip.open(read1file)
 		else:
 		    f1=open(read1file)
-		for l1 in zip(f1):
+		for (l1,) in zip(f1):
 			if (curcnt == 0):
 				if (len(l1) == 0 or l1[0] != '@'):
 					print 'File format issues in input file.'
