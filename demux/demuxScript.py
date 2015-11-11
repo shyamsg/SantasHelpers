@@ -433,7 +433,6 @@ else: ## Single end dealing
 			f1=gzip.open(read1file)
 		else:
 			f1=open(read1file)
-		print "starting loop"
 		for l1 in f1:
 			print l1
 			sys.stdout.flush()
@@ -473,9 +472,9 @@ else: ## Single end dealing
 				sname1 = ''
 				sname2 = ''
 				cntReads += 1
-#				if (cntReads % 100 == 0):
-				print datetime.datetime.now().time(), ': Processed', cntReads, 'reads.'
-				sys.stdout.flush()
+				if (cntReads % 100 == 0):
+					print datetime.datetime.now().time(), ': Processed', cntReads, 'reads.'
+					sys.stdout.flush()
 		f1.close()
 		print "Done processing files", read1file
 
