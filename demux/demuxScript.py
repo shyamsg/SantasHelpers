@@ -78,7 +78,7 @@ def nearestNeighPaired(read1str, read2str, adapters, enzymeLength, ambiguity=Fal
 	mind1 = 0
 	mind2 = 0
 	for aid in adapters:
-		(d1, d2) = hamming(read1str[0:(len(aid)+enzymeLength)], read2str[0:(len(aid)+enzymeLength)], aid, enzymeLength, ambiguity)
+		(d1, d2) = hammingPaired(read1str[0:(len(aid)+enzymeLength)], read2str[0:(len(aid)+enzymeLength)], aid, enzymeLength, ambiguity)
 		cd = d1 + d2
 		if cd < minDist:
 			minDist = cd
@@ -128,7 +128,7 @@ def nearestNeighSingle(read1str, adapters, enzymeLength, ambiguity=False):
 	numnearest = 0
 	mind1 = 0
 	for aid in adapters:
-		(d1) = hamming(read1str[0:(len(aid)+enzymeLength)], aid, enzymeLength, ambiguity)
+		(d1) = hammingSingle(read1str[0:(len(aid)+enzymeLength)], aid, enzymeLength, ambiguity)
 		cd = d1
 		if cd < minDist:
 			minDist = cd
