@@ -425,16 +425,13 @@ else: ## Single end dealing
 			f1.close()
 			print "Done processing files", read1file
 	else:
-		print "in here"
 		read1file = args.left
 		sname1 = ''
 		curcnt = 0
 		print 'Processing files:', read1file
 		if (read1file[-3:] == '.gz'):
-			print "opening gzip file"
 			f1=gzip.open(read1file)
 		else:
-			print "normal file"
 			f1=open(read1file)
 		for (l1,) in zip(f1):
 			if (curcnt == 0):
@@ -472,7 +469,7 @@ else: ## Single end dealing
 				sname1 = ''
 				sname2 = ''
 				cntReads += 1
-				if (cntReads % 100000 == 0):
+				if (cntReads % 100 == 0):
 					print datetime.datetime.now().time(), ': Processed', cntReads, 'reads.'
 					sys.stdout.flush()
 		f1.close()
