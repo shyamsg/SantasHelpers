@@ -1,7 +1,13 @@
 #! /usr/bin/env python
 ##########################################################
-# Code to demux the GBS raw sequence files using the li- #
-# rary number. The input files are read from other files #
+# File: demuxScript.py                                   #
+# Author: Shyam Gopalakrishnan                           #
+# Date: 11 Nov 2015                                      #
+# Description:Code to demux the GBS raw sequence files   #
+# using the library number. The input files are read from#
+# a list of files if there are multiple input files.     #
+# OR in the case of a single input file for each side of #
+# of the read pair, it can take the files directly.      #
 ##########################################################
 
 import os
