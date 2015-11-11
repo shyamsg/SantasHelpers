@@ -159,6 +159,7 @@ isSingleEnd = (args.right == "")
 ## Check for sanity of single end settings
 if isSingleEnd:
 	print "Single end processing. Only using single end mismatch of", args.singleMismatch
+        if args.nosingle:
 	print "The -d option is ignored since this is single end reads."
 else:
 	print "Paired end processing. Using single end mismatch of", args.singleMismatch
@@ -178,7 +179,8 @@ else:
 ## Main processing
 sidfile = open(args.sidfname)
 #enzymeSuffix = 'TGCAG' #works only for PstI
-ambigousEnz = re.search()
+ambiguousEnz = re.search("[^ACGT]", args.enzyme)
+ambiguousEnz = (ambiguousEnz == None)
 enzymeSuffix = args.enzyme
 enzLength = len(enzymeSuffix)
 line = sidfile.readline() # gets rid of header
@@ -268,7 +270,7 @@ if not isSingleEnd: ## Paired end dealing
 				elif (curcnt == 3):
 					qual1 = l1.strip()
 					qual2 = l2.strip()
-					(nearest, distread1, distread2) = nearestNeighPaired(seq1, seq2, sids, enzLength, ambigousEnz)
+					(nearest, distread1, distread2) = nearestNeighPaired(seq1, seq2, sids, enzLength, ambiguousEnz)
 					if (nearest != None):
 						if (distread1 + distread2) <= args.pairMismatch:
 							successPairs += 1
@@ -341,7 +343,7 @@ if not isSingleEnd: ## Paired end dealing
 			elif (curcnt == 3):
 				qual1 = l1.strip()
 				qual2 = l2.strip()
-				(nearest, distread1, distread2) = nearestNeighPaired(seq1, seq2, sids, enzLength, ambigousEnz)
+				(nearest, distread1, distread2) = nearestNeighPaired(seq1, seq2, sids, enzLength, ambiguousEnz)
 				if (nearest != None):
 					if (distread1 + distread2) <= args.pairMismatch:
 						successPairs += 1
@@ -404,7 +406,7 @@ else: ## Single end dealing
 					curcnt += 1
 				elif (curcnt == 3):
 					qual1 = l1.strip()
-					(nearest, distread1) = nearestNeighSingle(seq1, sids, enzLength, ambigousEnz)
+					(nearest, distread1) = nearestNeighSingle(seq1, sids, enzLength, ambiguousEnz)
 					if (nearest != None):
 						if distread1 <= args.singleMismatch:
 							success += 1
@@ -453,7 +455,7 @@ else: ## Single end dealing
 				curcnt += 1
 			elif (curcnt == 3):
 				qual1 = l1.strip()
-				(nearest, distread1) = nearestNeighSingle(seq1, sids, enzLength, ambigousEnz)
+				(nearest, distread1) = nearestNeighSingle(seq1, sids, enzLength, ambiguousEnz)
 				if (nearest != None):
 					if distread1 <= args.singleMismatch:
 						success += 1
