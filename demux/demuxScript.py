@@ -537,10 +537,10 @@ if not isSingleEnd:
 	fhand_discard_2.close()
 for name in np.unique(sids.values()):
 	fhands_1[name].close()
-    if (not isSingleEnd):
-        fhands_2[name].close()
-        if (not args.nosingle):
-            fhands_s_good[name].close()
-            fhands_s_bad[name].close()
+	if (not isSingleEnd):
+		fhands_2[name].close()
+		if (not args.nosingle):
+			fhands_s_good[name].close()
+			fhands_s_bad[name].close()
 
 print 'Number of reads processed:', success, '/', cntReads
