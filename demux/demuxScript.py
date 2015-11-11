@@ -383,7 +383,7 @@ else: ## Single end dealing
 			    f1=gzip.open(read1file)
 			else:
 			    f1=open(read1file)
-			for (l1,) in zip(f1):
+			for l1 in f1:
 				if (curcnt == 0):
 					if (len(l1) == 0 or l1[0] != '@'):
 						print 'File format issues in input file.'
@@ -434,7 +434,7 @@ else: ## Single end dealing
 		else:
 			f1=open(read1file)
 		print "starting loop"
-		for (l1,) in zip(f1):
+		for l1 in f1:
 			print l1
 			sys.stdout.flush()
 			if (curcnt == 0):
