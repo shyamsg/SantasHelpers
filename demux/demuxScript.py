@@ -425,7 +425,7 @@ else: ## Single end dealing
 			f1.close()
 			print "Done processing files", read1file
 	else:
-		print "in here".
+		print "in here"
 		read1file = args.left
 		sname1 = ''
 		curcnt = 0
