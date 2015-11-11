@@ -462,6 +462,7 @@ else: ## Single end dealing
 				curcnt += 1
 			elif (curcnt == 3):
 				qual1 = l1.strip()
+				print seq1, sids, enzLength, ambiguousEnz
 				(nearest, distread1) = nearestNeighSingle(seq1, sids, enzLength, ambiguousEnz)
 				if (nearest != None):
 					if distread1 <= args.singleMismatch:
