@@ -145,14 +145,14 @@ if (__name__=='__main__'):
 	parser = argparse.ArgumentParser(description='Demultiplexing script for barcoded sequencing runs')
 	parser.add_argument('-l', '--library', metavar='Library', type=str, dest='lib', help='Library to demultiplex', required=True)
 	parser.add_argument('-1', '--infirst', metavar='Read1File', type=str, dest='left', help='Input read1 fastq (zipped or not) filename OR List of read1 fastqs', required=True)
-	parser.add_argument('-2', '--insecond', metavar='Read2File', type=str, dest='right', help='Input fastq (zipped or not) filename OR List of read2 fastqs', required=False, default="")
+	parser.add_argument('-2', '--insecond', metavar='Read2File', type=str, dest='right', help='Input fastq (zipped or not) filename OR List of read2 fastqs (default "")', required=False, default="")
 	parser.add_argument('-s', '--adapters', metavar='AdapterFile', type=str, dest='sidfname', help='Adapter file (tab separated)', required=True)
-	parser.add_argument('-d', '--DiscardSingle', dest='nosingle', help='Add the single end reads to the discard pile', action='store_true')
-	parser.add_argument('-u', '--unzipoutput', dest='unzipout', help='Unzipped output', action='store_true')
-	parser.add_argument('-e', '--enzymeSuffix', dest='enzyme', help='Enzyme Sequence (part that shows up in reads)', required=False, default='TGCAG')
-	parser.add_argument('-m', '--mismatch', type=int, metavar="SingleMismatch", dest='singleMismatch', help='Max. mismatches in single end', required=False, default=1)
-	parser.add_argument('-p', '--pairMismatch', type=int, metavar="pairMismatch", dest='pairMismatch', help='Max. mismatches total in paired end', required=False, default=2)
-	parser.add_argument('-t', '--isList', dest="isListInput", help="Input files are list of sequence files.", action="store_true")
+	parser.add_argument('-d', '--DiscardSingle', dest='nosingle', help='Add the single end reads to the discard pile (default FALSE)', action='store_true')
+	parser.add_argument('-u', '--unzipoutput', dest='unzipout', help='Unzipped output (default FALSE)', action='store_true')
+	parser.add_argument('-e', '--enzymeSuffix', dest='enzyme', help='Enzyme Sequence (part that shows up in reads) (default TGCAG)', required=False, default='TGCAG')
+	parser.add_argument('-m', '--mismatch', type=int, metavar="SingleMismatch", dest='singleMismatch', help='Max. mismatches in single end (default 1)', required=False, default=1)
+	parser.add_argument('-p', '--pairMismatch', type=int, metavar="pairMismatch", dest='pairMismatch', help='Max. mismatches total in paired end (default 2)', required=False, default=2)
+	parser.add_argument('-t', '--isList', dest="isListInput", help="Input files are list of sequence files. (default FALSE)", action='store_true')
 	args = parser.parse_args()
 
 isSingleEnd = (args.right == "")
@@ -180,7 +180,7 @@ else:
 sidfile = open(args.sidfname)
 #enzymeSuffix = 'TGCAG' #works only for PstI
 ambiguousEnz = re.search("[^ACGT]", args.enzyme)
-ambiguousEnz = (ambiguousEnz == None)
+ambiguousEnz = (ambiguousEnz != None)
 enzymeSuffix = args.enzyme
 enzLength = len(enzymeSuffix)
 line = sidfile.readline() # gets rid of header
