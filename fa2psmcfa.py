@@ -53,7 +53,14 @@ def processInFasta(infasta, winsize, propN, linesize, out):
             while len(outline) >= linesize:
                 outfile.write(outline[0:linesize]+"\n")
                 outline = outline[linesize:]
-
+    while len(outline) >= linesize:
+        outfile.write(outline[0:linesize]+"\n")
+        outline = outline[linesize:]
+    if outline != "":
+        outfile.write(outline+"\n")
+    outfile.close()
+    infile.close()
+        
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Convert consensus fasta to psmcfa", version="0.1")
     parser.add_argument("-i", "--inFasta", help="Input consensus fasta file", dest="infasta", required=True)
