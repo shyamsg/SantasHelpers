@@ -64,7 +64,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.out == "":
         args.out = args.infasta + ".psmcfa"
-    if args.propN <= 0 or propN >= 1:
+    if args.propN < 0 or args.propN >= 1:
         print "Proportion of Ns allower must be strictly between 0 and 1."
         sys.exit(1)
     if args.winsize <= 0:
