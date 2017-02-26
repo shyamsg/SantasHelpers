@@ -11,6 +11,7 @@ module load admixture/1.23
 
 rep=$PBS_ARRAYID
 mkdir -p rep$rep
+cd rep$rep 
 
 K=$2
 numThreads=$3
