@@ -24,8 +24,8 @@ def seqHetOrHom(sequence, winLength, propN):
     if len(sequence) != winLength or sequence.count(missingBase)*1.0/winLength > propN:
         return "N"
     if re.search(ambiguousBases, sequence) == None:
-        return "K"
-    else: return "T"
+        return "T"
+    else: return "K"
 
 def processInFasta(infasta, winsize, propN, linesize, out):
     """This funciton reads the input file, and processes it to 
@@ -35,8 +35,17 @@ def processInFasta(infasta, winsize, propN, linesize, out):
     outfile = open(out, "w")
     outline = ""
     inline = ""
-    for line in infasta:
+    for line in infile:
         if line[0] == ">":
+            # This is to take care of shorter than 
+            # window size overhangs at the end of chrs
+            # or scaffolds
+            if inline != "":
+                outline += seqHetOrHom(inline, winsize, propN)
+                inline = ""
+            while len(outline) >= linesize:
+                outfile.write(outline[0:linesize]+"\n")
+                outline = outline[linesize:]
             if outline != "":
                 outfile.write(outline+"\n")
                 outline = ""
@@ -48,8 +57,8 @@ def processInFasta(infasta, winsize, propN, linesize, out):
             line = line[(winsize - inlineLen):]
             while len(inline) == winsize:
                 outline += seqHetOrHom(inline, winsize, propN)
-                inline = ""
-                inline = line[0:winsize]
+            	inline = line[0:winsize]
+            	line = line[winsize:]
             while len(outline) >= linesize:
                 outfile.write(outline[0:linesize]+"\n")
                 outline = outline[linesize:]
@@ -58,9 +67,10 @@ def processInFasta(infasta, winsize, propN, linesize, out):
         outline = outline[linesize:]
     if outline != "":
         outfile.write(outline+"\n")
+        outline = ""
     outfile.close()
     infile.close()
-        
+    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Convert consensus fasta to psmcfa", version="0.1")
     parser.add_argument("-i", "--inFasta", help="Input consensus fasta file", dest="infasta", required=True)
