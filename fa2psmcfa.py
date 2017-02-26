@@ -25,7 +25,7 @@ def seqHetOrHom(sequence, winLength, propN):
         return "N"
     if re.search(ambiguousBases, sequence) == None:
         return "K"
-    else return "T"
+    else: return "T"
 
 def processInFasta(infasta, winsize, propN, linesize, out):
     """This funciton reads the input file, and processes it to 
