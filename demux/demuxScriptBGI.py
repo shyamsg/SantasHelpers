@@ -35,7 +35,7 @@ def findBestSampleIndex(index, indicesDict, maxMismatch=0):
   minDist  = np.min(misDists)
   numBests = np.sum(misDists == minDist)
   if numBests == 1 and minDist <= maxMismatch:
-    return np.argmin(misDists)
+    return indicesDict.keys()[np.argmin(misDists)]
   else:
     return None
 
