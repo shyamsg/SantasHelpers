@@ -145,8 +145,8 @@ def processReadFiles(read1, read2, indices, read1outs, read2outs):
 
 if (__name__=='__main__'):
   parser = argparse.ArgumentParser(description='Demultiplexing script for BGI sequencing runs')
-  parser.add_argument('-i', '--indices', metavar='Indices', type=str, dest='index', help='2 columntab separated file with sample name and index', required=True)
-  parser.add_argument('-1', '--infirst', metavar='Read1File', type=str, dest='left', help='Input read 1 fastq (zipped or not) filename OR List of read1 fastqs', required=True)
+  parser.add_argument('-i', '--indices', metavar='Indices', type=str, dest='index', help='2 column tab separated file with sample name and index', required=True)
+  parser.add_argument('-1', '--infirst', metavar='Read1File', type=str, dest='left', help='Input read 1 fastq (zipped or not) filename', required=True)
   parser.add_argument('-2', '--insecond', metavar='Read2File', type=str, dest='right', help='Input read 2 fastq (zipped or not) filename (default "")', required=False, default="")
   parser.add_argument('-u', '--unzippedOut', dest="unzipOut", help="Do not GZip output files. (default False)", action='store_true')
   parser.add_argument('-m', '--maxMismatch', metavar='maxIndexMismatch', type=int, dest='maxmis', help='Maximum number of mismatches allowed in index', required=False, default=0)
@@ -159,13 +159,19 @@ if (__name__=='__main__'):
   indexlen = len(indices.values()[0])
 
   #### Now open the output files.
-  read1outhandles, read2outhandles = openOutputFiles(indices, !args.unzipOut, pairedEnd)
+  read1outhandles, read2outhandles = openOutputFiles(indices, not args.unzipOut, pairedEnd)
 
   #### Open the input file(s)
-  read1 = (args.left[-3:] == ".gz") ? gzip.open(args.left, "rb") : open(args.left)
+  if (args.left[-3:] == ".gz"):
+    read1 = gzip.open(args.left, "rb")
+  else:
+    read1 = open(args.left)
   read2 = None
   if pairedEnd:
-    read2 = (args.right[-3:] == ".gz") ? gzip.open(args.right, "rb") : open(args.right)
+    if (args.right[-3:] == ".gz"):
+      read2 = gzip.open(args.right, "rb")
+    else:
+      read2 = open(args.right)
 
   #### process the input files and write to output files.
   processReadFiles(read1, read2, indices, read1outhandles, read2outhandles)
