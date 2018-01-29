@@ -13,32 +13,10 @@
 # the index sequence.                                    #
 ##########################################################
 
-import os
-import re
 import argparse
 import gzip
 import numpy as np
 import sys
-import Levenshtein as lev
-
-# fuzzy match dictionary
-# IUPAC = {}
-# IUPAC["A"] = re.compile("A")
-# IUPAC["C"] = re.compile("C")
-# IUPAC["G"] = re.compile("G")
-# IUPAC["T"] = re.compile("T")
-# IUPAC["M"] = re.compile("[AC]")
-# IUPAC["R"] = re.compile("[AG]")
-# IUPAC["W"] = re.compile("[AT]")
-# IUPAC["S"] = re.compile("[CG]")
-# IUPAC["Y"] = re.compile("[CT]")
-# IUPAC["K"] = re.compile("[GT]")
-# IUPAC["V"] = re.compile("[ACG]")
-# IUPAC["H"] = re.compile("[ACT]")
-# IUPAC["D"] = re.compile("[AGT]")
-# IUPAC["B"] = re.compile("[CGT]")
-# IUPAC["N"] = re.compile("[ACGT]")
-
 
 # Functions
 def hamming(s1, s2):
@@ -48,15 +26,15 @@ def hamming(s1, s2):
   """
   return np.sum(np.array(list(s1)) != np.array(list(s2)))
 
-def findBestSampleIndex(index, indicesDict):
+def findBestSampleIndex(index, indicesDict, maxMismatch=0):
   """
-  This function calculates the sample with the minimum 
+  This function calculates the sample with the minimum
   mismatch distance between the strings.
   """
   misDists = np.array([hamming(index, val) for val in indicesDict.values()])
   minDist  = np.min(misDists)
   numBests = np.sum(misDists == minDist)
-  if numBests == 1:
+  if numBests == 1 and minDist <= maxMismatch:
     return np.argmin(misDists)
   else:
     return None
@@ -77,7 +55,7 @@ def readIndexFile(indexFile):
       sys.stderr.write("The index for sample " + sample + "does not have the same length as previous indices\n")
       sys.exit(2)
     if sample in indices:
-      sys.stderr.write("This sample occurs twice in index file: " + sample + "\n") 
+      sys.stderr.write("This sample occurs twice in index file: " + sample + "\n")
       sys.exit(1)
     indices[sample] = index
   infile.close()
@@ -85,7 +63,7 @@ def readIndexFile(indexFile):
 
 def openOutputFiles(indices, zipout, pairedEnd):
   """
-  Make output filehandles for files that are to be opened, 
+  Make output filehandles for files that are to be opened,
   1/2 per sample. Return a dict of such file handles.
   """
   read1handles = {}
@@ -99,23 +77,71 @@ def openOutputFiles(indices, zipout, pairedEnd):
     read2handles = {}
     if zipout:
       for sample, index in indices.iteritems():
-        read2handles[sample] = gzip.open(sample+"_read2.fq.gz", "w")
+        read2handles[sample] = gzip.open(sample+"_read2.fq.gz", "wb")
     else:
       for sample, index in indices.iteritems():
-        read2handles[sample] = open(sample+"_read2.fq.gz", "w")
+        read2handles[sample] = open(sample+"_read2.fq.gz", "wb")
     return(read1handles, read2handles)
   else:
     return(read1handles, None)
 
-def processReadFiles(read1, read2, indices, zipout):
+def processReadFiles(read1, read2, indices, read1outs, read2outs):
   """
-  Process the input read files one read at at time, and 
+  Process the input read files one read at at time, and
   output to the corresponding output files.
   """
+  indexlen = len(indices.values()[0])
+  cnt = 0
+  unassigned = 0
   if read2 == None:
     ## Single end reads.
     while True:
-      (name, seq, dummy, qual) = (read1.readline(),read1.readline(),read1.readline(), read1.readline())
+      (name, seq, dummy, qual) = (read1.readline(), read1.readline(), read1.readline(), read1.readline())
+      if name == "":
+        break
+      if seq == "" or dummy == "" or qual == "":
+        sys.stderr.write("Incomplete fastq file, read invalid "+name"\n")
+        sys.exit(3)
+      index = (seq.strip())[-indexlen:]
+      sample = findBestSampleIndex(index, indices)
+      if sample == None:
+        unassigned += 1
+      else:
+        seq = seq.strip()[:-indexlen]+"\n"
+        qual = qual.strip()[:-indexlen]+"\n"
+        read1outs[sample].write(name+seq+dummy+qual)
+      cnt += 1
+      if cnt%100000 == 0:
+        sys.stderr.write("\r"+str(cnt)+"reads processed.")
+  else:
+    while True:
+      (name1, seq1, dummy1, qual1) = (read1.readline(), read1.readline(), read1.readline(), read1.readline())
+      (name2, seq2, dummy2, qual2) = (read2.readline(), read2.readline(), read2.readline(), read2.readline())
+      if name1 == "" and name2 == "":
+        break
+      if name1 == "" or name2 == "":
+        sys.stderr.write("The read files do not match up, please check at read1:"+name1+"and read2:"+name2+"\n")
+        sys.exit(4)
+      if seq1 == "" or dummy1 == "" or qual1 == "":
+        sys.stderr.write("Incomplete read1 fastq file, read invalid "+name1"\n")
+        sys.exit(5)
+      if seq2 == "" or dummy2 == "" or qual2 == "":
+        sys.stderr.write("Incomplete read2 fastq file, read invalid "+name2"\n")
+        sys.exit(5)
+      index = (seq2.strip())[-indexlen:]
+      sample = findBestSampleIndex(index, indices)
+      if sample == None:
+        unassigned += 1
+      else:
+        seq2 = seq2.strip()[:-indexlen]+"\n"
+        qual2 = qual2.strip()[:-indexlen]+"\n"
+        read1outs[sample].write(name1+seq1+dummy1+qual1)
+        read2outs[sample].write(name2+seq2+dummy2+qual2)
+      cnt += 1
+      if cnt%100000 == 0:
+        sys.stderr.write("\r"+str(cnt)+"pairs processed.")
+  sys.stderr.write("Completed processing"+str(cnt)+" reads.\n")
+  sys.stderr.write("  Unassigned reads: "+str(unassigned)+"\n")
 
 if (__name__=='__main__'):
   parser = argparse.ArgumentParser(description='Demultiplexing script for BGI sequencing runs')
@@ -123,9 +149,10 @@ if (__name__=='__main__'):
   parser.add_argument('-1', '--infirst', metavar='Read1File', type=str, dest='left', help='Input read 1 fastq (zipped or not) filename OR List of read1 fastqs', required=True)
   parser.add_argument('-2', '--insecond', metavar='Read2File', type=str, dest='right', help='Input read 2 fastq (zipped or not) filename (default "")', required=False, default="")
   parser.add_argument('-u', '--unzippedOut', dest="unzipOut", help="Do not GZip output files. (default False)", action='store_true')
+  parser.add_argument('-m', '--maxMismatch', metavar='maxIndexMismatch', type=int, dest='maxmis', help='Maximum number of mismatches allowed in index', required=False, default=0)
+
   args = parser.parse_args()
   pairedEnd = (args.right != "")
-
 
   #### First read the index file.
   indices  = readIndexFile(args.index)
@@ -133,12 +160,12 @@ if (__name__=='__main__'):
 
   #### Now open the output files.
   read1outhandles, read2outhandles = openOutputFiles(indices, !args.unzipOut, pairedEnd)
-  
+
   #### Open the input file(s)
-  read1 = (args.left[-3:] == ".gz") ? gzip.open(args.left) : open(args.left)
+  read1 = (args.left[-3:] == ".gz") ? gzip.open(args.left, "rb") : open(args.left)
   read2 = None
   if pairedEnd:
-    read2 = (args.right[-3:] == ".gz") ? gzip.open(args.right) : open(args.right)
+    read2 = (args.right[-3:] == ".gz") ? gzip.open(args.right, "rb") : open(args.right)
 
   #### process the input files and write to output files.
-  processReadFiles(read1, read2, indices, zipout)
+  processReadFiles(read1, read2, indices, read1outhandles, read2outhandles)
