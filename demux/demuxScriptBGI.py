@@ -111,8 +111,8 @@ def processReadFiles(read1, read2, indices, read1outs, read2outs):
         qual = qual.strip()[:-indexlen]+"\n"
         read1outs[sample].write(name+seq+dummy+qual)
       cnt += 1
-      if cnt%100000 == 0:
-        sys.stderr.write("\r"+str(cnt)+"reads processed.")
+      if (cnt & 65535) == 0:
+        sys.stderr.write("\r"+str(cnt)+" reads processed.")
   else:
     while True:
       (name1, seq1, dummy1, qual1) = (read1.readline(), read1.readline(), read1.readline(), read1.readline())
@@ -138,8 +138,8 @@ def processReadFiles(read1, read2, indices, read1outs, read2outs):
         read1outs[sample].write(name1+seq1+dummy1+qual1)
         read2outs[sample].write(name2+seq2+dummy2+qual2)
       cnt += 1
-      if cnt%100000 == 0:
-        sys.stderr.write("\r"+str(cnt)+"pairs processed.")
+      if (cnt & 65535) == 0:
+        sys.stderr.write("\r"+str(cnt)+" read pairs processed.")
   sys.stderr.write("Completed processing"+str(cnt)+" reads.\n")
   sys.stderr.write("  Unassigned reads: "+str(unassigned)+"\n")
 
