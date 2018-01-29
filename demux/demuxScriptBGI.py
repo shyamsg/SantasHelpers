@@ -100,7 +100,7 @@ def processReadFiles(read1, read2, indices, read1outs, read2outs):
       if name == "":
         break
       if seq == "" or dummy == "" or qual == "":
-        sys.stderr.write("Incomplete fastq file, read invalid "+name"\n")
+        sys.stderr.write("Incomplete fastq file, read invalid "+name+"\n")
         sys.exit(3)
       index = (seq.strip())[-indexlen:]
       sample = findBestSampleIndex(index, indices)
@@ -123,10 +123,10 @@ def processReadFiles(read1, read2, indices, read1outs, read2outs):
         sys.stderr.write("The read files do not match up, please check at read1:"+name1+"and read2:"+name2+"\n")
         sys.exit(4)
       if seq1 == "" or dummy1 == "" or qual1 == "":
-        sys.stderr.write("Incomplete read1 fastq file, read invalid "+name1"\n")
+        sys.stderr.write("Incomplete read1 fastq file, read invalid "+name1+"\n")
         sys.exit(5)
       if seq2 == "" or dummy2 == "" or qual2 == "":
-        sys.stderr.write("Incomplete read2 fastq file, read invalid "+name2"\n")
+        sys.stderr.write("Incomplete read2 fastq file, read invalid "+name2+"\n")
         sys.exit(5)
       index = (seq2.strip())[-indexlen:]
       sample = findBestSampleIndex(index, indices)
