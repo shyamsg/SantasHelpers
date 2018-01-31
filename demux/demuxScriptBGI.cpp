@@ -32,9 +32,9 @@
 
 using namespace std;
 
-typedef map<string, pair<gzFile, gzFile>> gzmap;
+typedef map<string, pair<gzFile, gzFile> > gzmap;
 typedef map<string, string> strmap;
-typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
+typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 
 // Define the hamming function, that returns the
 // number of differences in the strings given to it.
@@ -81,7 +81,7 @@ strmap readIndexFile(string adapterFile){
   ifstream infile(adapterFile);
   string sample;
   string adapter;
-  typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
+  typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   boost::char_separator<char> sep{" \t"};
   if (!infile) {
     cerr << "Adapter file " <<  adapterFile << "not found." << endl;
