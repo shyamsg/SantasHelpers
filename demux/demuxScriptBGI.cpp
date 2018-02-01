@@ -159,8 +159,9 @@ bool getOneLineFromBuffer(const unsigned char *lbuf, string &value, uint &index)
   return false;
 }
 
-// Overloaded function that reads a single fastq from the file,
-// be it gzipped or ungzipped.
+// Function that reads a single fastq from the file,
+// be it gzipped or ungzipped - gz* functions are
+// capable of handling both versions!
 bool readOneReadFromFastq(gzFile infile, unsigned char ** buffer,
   uint &index, string** read) {
   // read a block from file if you are at the end of the block.
@@ -192,19 +193,6 @@ bool readOneReadFromFastq(gzFile infile, unsigned char ** buffer,
   }
   return gotLine;
 }
-
-// ungzipped version
-// bool readOneReadFromFastq(ifstream &infile, string ** read) {
-//   uint cnt = 0;
-//   string temp;
-//   while (cnt < 4) {
-//     if (infile.eof())
-//     return false;
-//     infile >> temp;
-//     (*read)[cnt] = temp;
-//   }
-//   return true;
-// }
 
 //
 // Process the input read files one read at at time, and
