@@ -224,8 +224,8 @@ void processReadFiles(string read1fn, string read2fn, strmap &sampleToAdapter,
     uint index2 = MEMBLOCK - 1;
     gzFile unass1File;
     gzFile unass2File;
-    keepUnassigned && (unass1File = gzopen(prefix + UNASSIGNED_PE1_FILENAME, "wb"))
-      && (unass2File = gzopen(prefix + UNASSIGNED_PE2_FILENAME, "wb"));
+    keepUnassigned && (unass1File = gzopen((prefix + UNASSIGNED_PE1_FILENAME).c_str(), "wb"))
+      && (unass2File = gzopen((prefix + UNASSIGNED_PE2_FILENAME).c_str(), "wb"));
     string *read2;
     read2 = new string[4];
     bool ok2 = true;
@@ -283,7 +283,7 @@ void processReadFiles(string read1fn, string read2fn, strmap &sampleToAdapter,
   } else {
     gzFile read1file = gzopen(read1fn.c_str(), "r");
     gzFile unassFile;
-    keepUnassigned && (unassFile = gzopen(prefix + UNASSIGNED_SE_FILENAME, "wb"));
+    keepUnassigned && (unassFile = gzopen((prefix + UNASSIGNED_SE_FILENAME).c_str(), "wb"));
     unsigned char * buffer;
     buffer = new unsigned char [MEMBLOCK];
     buffer[MEMBLOCK - 1] = '\0';
@@ -385,7 +385,7 @@ int main(int argc, char** argv) {
       string adapterFilename = adapterFileArg.getValue();
       string read1Filename   = read1FileArg.getValue();
       string read2Filename   = read2FileArg.getValue();
-      string prefix          = namePrefixArg.getValues();
+      string prefix          = namePrefixArg.getValue();
     	bool keepUnassigned    = keepUnassignedSwitch.getValue();
       int maxMismatch        = mismatchArg.getValue();
       bool bestMismatch      = bestMismatchSwitch.getValue();
@@ -400,7 +400,7 @@ int main(int argc, char** argv) {
       // figure out if the input is paired end.
       bool pairedEnd = !read2Filename.empty();
       // open the output files, create and poise.
-      gzmap outfiles = openOutputFiles(sampleToAdapter, pairedEnd);
+      gzmap outfiles = openOutputFiles(sampleToAdapter, pairedEnd, prefix);
       // If bestmismatch is on, then process the adapter file to get
       // highest number of mismatches that can be tolerated
       if (bestMismatch) {
