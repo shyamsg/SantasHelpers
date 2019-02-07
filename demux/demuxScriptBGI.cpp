@@ -335,19 +335,19 @@ void processReadFiles(string read1fn, string read2fn, strmap &sampleToAdapter,
 // The main function that does all the work.
 int main(int argc, char** argv) {
 
-  	// Wrap everything in a try block.  Do this every time,
-  	// because exceptions will be thrown for problems.
-  	try {
+    // Wrap everything in a try block.  Do this every time,
+    // because exceptions will be thrown for problems.
+    try {
 
-    	// Define the command line object, and insert a message
-    	// that describes the program.
-    	TCLAP::CmdLine cmd("Demultiplexer for BGISeq", ' ', "0.9");
+      // Define the command line object, and insert a message
+      // that describes the program.
+      TCLAP::CmdLine cmd("Demultiplexer for BGISeq", ' ', "0.9");
 
-    	// Define a adapter file argument and add it to the command line.
-    	TCLAP::ValueArg<std::string> adapterFileArg("a","adapterFile",
+      // Define a adapter file argument and add it to the command line.
+      TCLAP::ValueArg<std::string> adapterFileArg("a","adapterFile",
         "Tab separated 2 column file with sample and adapter pairs.",
         true,"homer","string");
-    	cmd.add(adapterFileArg);
+      cmd.add(adapterFileArg);
       // Read 1 arg
       TCLAP::ValueArg<std::string> read1FileArg("1","read1File",
         "Read1 fastq file (optionally gzipped)",
@@ -359,18 +359,18 @@ int main(int argc, char** argv) {
         false,"","string");
       cmd.add(read2FileArg);
       // Define a adapter file argument and add it to the command line.
-    	TCLAP::ValueArg<std::string> namePrefixArg("p","namePrefix",
+      TCLAP::ValueArg<std::string> namePrefixArg("p","namePrefix",
         "Prefix to be added to all the output files",
         false, "", "string");
-    	cmd.add(adapterFileArg);
+      cmd.add(namePrefixArg);
       // max mismatches allowed in the adapter sequence
       TCLAP::ValueArg<int> mismatchArg("m","maxMismatch",
         "Maximum number of mismatches allowed in adapter sequence.",
         false, 0,"integer >= 0");
       cmd.add(mismatchArg);
 
-    	// Define a switch to keep unassigned reads
-    	TCLAP::SwitchArg keepUnassignedSwitch("u","keepUnassigned",
+      // Define a switch to keep unassigned reads
+      TCLAP::SwitchArg keepUnassignedSwitch("u","keepUnassigned",
         "Keep Unassigned Reads in a separate file (Unassigned*.fq.gz)", cmd,
         false);
       // arg to find best value for maxmismatch.
@@ -378,15 +378,15 @@ int main(int argc, char** argv) {
         "Process the adapter file to get the best maximum mismatch value.",
         cmd, false);
 
-    	// Parse the argv array.
-    	cmd.parse( argc, argv );
+      // Parse the argv array.
+      cmd.parse( argc, argv );
 
-    	// Get the value parsed by each arg.
+      // Get the value parsed by each arg.
       string adapterFilename = adapterFileArg.getValue();
       string read1Filename   = read1FileArg.getValue();
       string read2Filename   = read2FileArg.getValue();
       string prefix          = namePrefixArg.getValue();
-    	bool keepUnassigned    = keepUnassignedSwitch.getValue();
+      bool keepUnassigned    = keepUnassignedSwitch.getValue();
       int maxMismatch        = mismatchArg.getValue();
       bool bestMismatch      = bestMismatchSwitch.getValue();
 
@@ -434,7 +434,7 @@ int main(int argc, char** argv) {
         gzclose(git->second.first);
         pairedEnd && gzclose(git->second.second);
       }
-  	} catch (TCLAP::ArgException &e)   { // catch any exceptions
+    } catch (TCLAP::ArgException &e)   { // catch any exceptions
       cerr << "Error: " << e.error() << " for arg " << e.argId() << endl;
     }
   return 0;
