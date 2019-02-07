@@ -125,20 +125,20 @@ strmap readIndexFile(string adapterFile){
 
 //   Make output filehandles for files that are to be opened,
 //   1/2 per sample. Return a dict of such file handles.
-gzmap openOutputFiles(strmap &sampleToAdapter, bool pairedEnd) {
+gzmap openOutputFiles(strmap &sampleToAdapter, bool pairedEnd, string prefix) {
   gzmap outfiles;
   string fn;
   if (pairedEnd) {
     for (strmap::iterator sit = sampleToAdapter.begin(); sit != sampleToAdapter.end(); sit++) {
-      fn = sit->first + "_read1.fq.gz";
+      fn = prefix + sit->first + "_read1.fq.gz";
       gzFile read1handle = gzopen(fn.c_str(), "wb");
-      fn = sit->first + "_read2.fq.gz";
+      fn = prefix + sit->first + "_read2.fq.gz";
       gzFile read2handle = gzopen(fn.c_str(), "wb");
       outfiles[sit->first] = pair<gzFile, gzFile>(read1handle, read2handle);
     }
   } else {
     for (strmap::iterator sit = sampleToAdapter.begin(); sit != sampleToAdapter.end(); sit++) {
-      fn = sit->first + "_read1.fq.gz";
+      fn = prefix + sit->first + "_read1.fq.gz";
       gzFile read1handle = gzopen(fn.c_str(), "wb");
       outfiles[sit->first] = pair<gzFile, gzFile>(read1handle, NULL);
     }
@@ -199,7 +199,7 @@ bool readOneReadFromFastq(gzFile infile, unsigned char ** buffer,
 // output to the corresponding output files.
 //
 void processReadFiles(string read1fn, string read2fn, strmap &sampleToAdapter,
-                      gzmap &outfiles, uint maxMismatch = 0,
+                      gzmap &outfiles, string prefix, uint maxMismatch = 0,
                       bool keepUnassigned = false) {
   uint indexlen = (sampleToAdapter.begin())->second.length();
   uint readsProcessed = 0;
@@ -224,8 +224,8 @@ void processReadFiles(string read1fn, string read2fn, strmap &sampleToAdapter,
     uint index2 = MEMBLOCK - 1;
     gzFile unass1File;
     gzFile unass2File;
-    keepUnassigned && (unass1File = gzopen(UNASSIGNED_PE1_FILENAME, "wb"))
-      && (unass2File = gzopen(UNASSIGNED_PE2_FILENAME, "wb"));
+    keepUnassigned && (unass1File = gzopen(prefix + UNASSIGNED_PE1_FILENAME, "wb"))
+      && (unass2File = gzopen(prefix + UNASSIGNED_PE2_FILENAME, "wb"));
     string *read2;
     read2 = new string[4];
     bool ok2 = true;
@@ -283,7 +283,7 @@ void processReadFiles(string read1fn, string read2fn, strmap &sampleToAdapter,
   } else {
     gzFile read1file = gzopen(read1fn.c_str(), "r");
     gzFile unassFile;
-    keepUnassigned && (unassFile = gzopen(UNASSIGNED_SE_FILENAME, "wb"));
+    keepUnassigned && (unassFile = gzopen(prefix + UNASSIGNED_SE_FILENAME, "wb"));
     unsigned char * buffer;
     buffer = new unsigned char [MEMBLOCK];
     buffer[MEMBLOCK - 1] = '\0';
@@ -358,6 +358,11 @@ int main(int argc, char** argv) {
         "Read2 fastq file (optionally gzipped).",
         false,"","string");
       cmd.add(read2FileArg);
+      // Define a adapter file argument and add it to the command line.
+    	TCLAP::ValueArg<std::string> namePrefixArg("p","namePrefix",
+        "Prefix to be added to all the output files",
+        false, "", "string");
+    	cmd.add(adapterFileArg);
       // max mismatches allowed in the adapter sequence
       TCLAP::ValueArg<int> mismatchArg("m","maxMismatch",
         "Maximum number of mismatches allowed in adapter sequence.",
@@ -380,8 +385,9 @@ int main(int argc, char** argv) {
       string adapterFilename = adapterFileArg.getValue();
       string read1Filename   = read1FileArg.getValue();
       string read2Filename   = read2FileArg.getValue();
+      string prefix          = namePrefixArg.getValues();
     	bool keepUnassigned    = keepUnassignedSwitch.getValue();
-      int maxMismatch       = mismatchArg.getValue();
+      int maxMismatch        = mismatchArg.getValue();
       bool bestMismatch      = bestMismatchSwitch.getValue();
 
       if (maxMismatch < 0) {
@@ -422,7 +428,7 @@ int main(int argc, char** argv) {
       }
       // Process the read file(s) and output into the output files.
       processReadFiles(read1Filename, read2Filename, sampleToAdapter, outfiles,
-                       maxMismatch, keepUnassigned);
+                       prefix, maxMismatch, keepUnassigned);
       // Close the gzfiles.
       for (gzmap::iterator git = outfiles.begin(); git != outfiles.end(); git++) {
         gzclose(git->second.first);
