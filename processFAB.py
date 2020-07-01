@@ -29,7 +29,7 @@ def processScaffold(scaffold, positions, aSeq, ancSeq, outfile):
 sitesDict = {}
 curChr = ""
 posFile = open(args.sites)
-for line in sites:
+for line in posFile:
     (chrom, pos) = line.strip().split()
     pos = int(pos)
     if chrom != curChr:
@@ -62,28 +62,28 @@ while True:
         else:
             curSeq += line
 
-        for line in Ancfasta:
-            line = line.strip()
-            if line[0] == ">": #header line
-                oldAncScaffold = ancScaffold
-                ancScaffold = line[1:]
-                break
-            else:
-                ancSeq += line
-
-        ## Note that the last two loops will read through the whole fasta files,
-        ## so the seq will only be the last scaffold.
-        ## First check that ancScaffold and curScaffold are the same
-        if oldAncScaffold == oldScaffold:
-            if curSeq != "":
-                processScaffold(oldAncScaffold, sitesDict[oldAncScaffold], curSeq, ancSeq, outfile)
-            curSeq = ""
-            ancSeq = ""
-        else:
-            print "Scaffold names do not match!"
-            sys.exit(1)
-        if line == "":
+    for line in Ancfasta:
+        line = line.strip()
+        if line[0] == ">": #header line
+            oldAncScaffold = ancScaffold
+            ancScaffold = line[1:]
             break
+        else:
+            ancSeq += line
+
+    ## Note that the last two loops will read through the whole fasta files,
+    ## so the seq will only be the last scaffold.
+    ## First check that ancScaffold and curScaffold are the same
+    if oldAncScaffold == oldScaffold:
+        if curSeq != "" and oldScaffold in sitesDict:
+            processScaffold(oldAncScaffold, sitesDict[oldAncScaffold], curSeq, ancSeq, outfile)
+        curSeq = ""
+        ancSeq = ""
+    else:
+        print "Scaffold names do not match!"
+        sys.exit(1)
+    if line == "":
+        break
 
 outfile.close()
 Afasta.close()
