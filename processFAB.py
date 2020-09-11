@@ -76,6 +76,9 @@ while True:
         else:
             ancSeq += line
 
+    if line == "" or line[0] != ">":
+        oldScaffold = curScaffold
+        oldAncScaffold = ancScaffold
     ## Note that the last two loops will read through the whole fasta files,
     ## so the seq will only be the last scaffold.
     ## First check that ancScaffold and curScaffold are the same
@@ -87,7 +90,8 @@ while True:
     else:
         print "Scaffold names do not match!"
         sys.exit(1)
-    if line == "":
+
+    if curScaffold == oldScaffold:
         break
 
 outfile.close()
