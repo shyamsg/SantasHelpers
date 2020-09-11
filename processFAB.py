@@ -27,7 +27,7 @@ def processScaffold(scaffold, positions, aSeq, ancSeq, outfile):
     """Process scaffold. """
     for pos in positions:
 		if (aSeq[pos-1] != "N" and ancSeq[pos-1] != "N"):
-			outfile.write(scaffold+"\t"+pos+"\t"+aSeq[pos-1]+"\t"+ancSeq[pos-1]+"\n")
+			outfile.write(scaffold+"\t"+str(pos)+"\t"+aSeq[pos-1]+"\t"+ancSeq[pos-1]+"\n")
 
 ### First process the pos file to get positions where B is heterozygous.
 ### Assuming no header line
