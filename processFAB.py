@@ -9,6 +9,9 @@ parser.add_argument("-s", "--sites", help="Sites file (sorted)", required=True)
 parser.add_argument("-f", "--fasta", help="Fasta file for chosen sample", required=True)
 parser.add_argument("-a", "--ancestralFasta", help="Fasta file for ancestral sample", required=True)
 parser.add_argument("-o", "--out", help="outputFile", required=False)
+parser.add_argument("-n", "--ignoreNs", action="store_true", help="Ignore sites with 'N' bases.", required=False)
+parser.add_argument("-b", "--blockSize", help="Size of block for block jackknife", required=False)
+parser.add_argument("-c", "--computeStat", help="Compute the statistic, in addition to storing the output file", action="store_true")
 args = parser.parse_args()
 
 if args.out == "":
@@ -17,12 +20,14 @@ else:
     outfile = open(args.out, "w")
 
 
+### Process
 
 ### Given the positions and the seqs, function to process them
 def processScaffold(scaffold, positions, aSeq, ancSeq, outfile):
     """Process scaffold. """
     for pos in positions:
-        outfile.write(scaffold+"\t"+pos+"\t"+aSeq[pos-1]+"\t"+ancSeq[pos-1]+"\n")
+		if (aSeq[pos-1] != "N" and ancSeq[pos-1] != "N"):
+			outfile.write(scaffold+"\t"+pos+"\t"+aSeq[pos-1]+"\t"+ancSeq[pos-1]+"\n")
 
 ### First process the pos file to get positions where B is heterozygous.
 ### Assuming no header line
