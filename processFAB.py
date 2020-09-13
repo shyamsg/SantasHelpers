@@ -19,11 +19,8 @@ if args.out == "":
 else:
     outfile = open(args.out, "w")
 
-Sites_A_derived = 0
-Sites_B_hetero  = 0
-
 ### Given the positions and the seqs, function to process them
-def processScaffold(scaffold, positions, aSeq, ancSeq, outfile):
+def processScaffold(scaffold, positions, aSeq, ancSeq, outfile, sitesCount):
     """Process scaffold. """
     for pos in positions:
         aAll = aSeq[pos-1]
@@ -31,9 +28,9 @@ def processScaffold(scaffold, positions, aSeq, ancSeq, outfile):
         if (aAll != "N" and ancAll != "N"):
             outfile.write(scaffold+"\t"+str(pos)+"\t"+aAll+"\t"+ancAll+"\n")
             if args.computeStat:
-                Sites_B_hetero += 1
+                sitesCount[0] += 1
                 if aAll != ancAll:
-                    Sites_A_derived += 1
+                    sitesCount[1] += 1
 
 ### First process the pos file to get positions where B is heterozygous.
 ### Assuming no header line
@@ -63,6 +60,8 @@ curSeq = ""
 oldAncScaffold = ""
 ancScaffold = ""
 ancSeq = ""
+sitesCount = np.zeros((2,))
+## Loop through the files.
 while True:
     for line in Afasta:
         line = line.strip()
@@ -90,7 +89,7 @@ while True:
     ## First check that ancScaffold and curScaffold are the same
     if oldAncScaffold == oldScaffold:
         if curSeq != "" and oldScaffold in sitesDict:
-            processScaffold(oldAncScaffold, sitesDict[oldAncScaffold], curSeq, ancSeq, outfile)
+            processScaffold(oldAncScaffold, sitesDict[oldAncScaffold], curSeq, ancSeq, outfile, sitesCount)
         curSeq = ""
         ancSeq = ""
     else:
@@ -101,8 +100,7 @@ while True:
         break
 
 if args.computeStat:
-    print("F(A|B) = " + np.round(Sites_A_derived*1.0/Sites_B_hetero, 4))
+    print("F(A|B) = " + np.round(sitesCount[1]*1.0/sitesCount[0], 4))
 outfile.close()
 Afasta.close()
 Ancfasta.close()
-
