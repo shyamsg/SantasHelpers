@@ -2,7 +2,7 @@
 
 import sys
 import argparse
-
+import numpy as np
 
 parser = argparse.ArgumentParser("F(A|B) processor.")
 parser.add_argument("-s", "--sites", help="Sites file (sorted)", required=True)
