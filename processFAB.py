@@ -43,12 +43,13 @@ def processScaffold(scaffold, positions, aSeq, ancSeq, sitesCount, outfile):
 
 def blockJackknifeFab(sitesCount):
     """Compute block jacknife estimates."""
-    numBlocks = np.shape(sitesCount)[0]
-    blockFracs = sitesCount[:,1]
+    sitesCount_NZ = sitesCount[np.where(sitesCount[:,0] > 0)[0],:]
+    numBlocks = np.shape(sitesCount_NZ)[0]
+    blockFracs = sitesCount_NZ[:,0]
     blockFracs = blockFracs*1.0/np.sum(blockFracs)
-    colSums = np.sum(sitesCount, axis=0)
+    colSums = np.sum(sitesCount_NZ, axis=0)
     fullFab = colSums[1]*1.0/colSums[0]
-    tempEsts = [(colSums[1]-sitesCount[block][1])*1.0/(colSums[0]-sitesCount[block][0]) for block in range(numBlocks)]
+    tempEsts = [(colSums[1]-sitesCount_NZ[block][1])*1.0/(colSums[0]-sitesCount_NZ[block][0]) for block in range(numBlocks)]
     jackknifeFabEst = numBlocks*fullFab - np.sum((1.0 - blockFracs)*tempEsts)
     jackknifeFabVar = np.sum(1.0/(1.0/blockFracs-1) * ((fullFab/blockFracs)-((1/blockFracs-1)*tempEsts) - (numBlocks*fullFab) + np.sum((1-blockFracs)*tempEsts))**2)/numBlocks
     return ((fullFab, jackknifeFabEst, jackknifeFabVar))
