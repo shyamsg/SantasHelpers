@@ -10,27 +10,48 @@ parser.add_argument("-f", "--fasta", help="Fasta file for chosen sample", requir
 parser.add_argument("-a", "--ancestralFasta", help="Fasta file for ancestral sample", required=True)
 parser.add_argument("-o", "--out", help="outputFile", required=False)
 parser.add_argument("-n", "--ignoreNs", action="store_true", help="Ignore sites with 'N' bases.", required=False)
-parser.add_argument("-b", "--blockSize", help="Size of block for block jackknife", required=False)
+parser.add_argument("-b", "--blockSize", help="Size of block for block jackknife", required=False, default = 0, type=int)
 parser.add_argument("-c", "--computeStat", help="Compute the statistic, in addition to storing the output file", action="store_true")
 args = parser.parse_args()
 
-if args.out == "":
-    outfile = sys.stdout
-else:
+if args.computeStat and args.blockSize == 0:
+    print("No block size given, so setting it to 1e10 bases.")
+    args.blockSize = 1e10
+
+outfile = None
+if args.out != "":
     outfile = open(args.out, "w")
 
 ### Given the positions and the seqs, function to process them
-def processScaffold(scaffold, positions, aSeq, ancSeq, outfile, sitesCount):
+def processScaffold(scaffold, positions, aSeq, ancSeq, sitesCount, outfile):
     """Process scaffold. """
+    prevBlock = -1
     for pos in positions:
         aAll = aSeq[pos-1]
         ancAll = ancSeq[pos-1]
         if (aAll != "N" and ancAll != "N"):
-            outfile.write(scaffold+"\t"+str(pos)+"\t"+aAll+"\t"+ancAll+"\n")
+            if args.out != "":
+                outfile.write(scaffold+"\t"+str(pos)+"\t"+aAll+"\t"+ancAll+"\n")
             if args.computeStat:
-                sitesCount[0] += 1
+                curBlock = int(pos/args.blockSize)
+                if curBlock != prevBlock:
+                    sitesCount.append([0,0])
                 if aAll != ancAll:
-                    sitesCount[1] += 1
+                    sitesCount[-1][1] += 1
+                sitesCount[-1][0] += 1
+                prevBlock = curBlock
+
+def blockJackknifeFab(sitesCount):
+    """Compute block jacknife estimates."""
+    numBlocks = np.shape(sitesCount)[0]
+    blockFracs = sitesCount[:,1]
+    blockFracs = blockFracs*1.0/np.sum(blockFracs)
+    colSums = np.sum(sitesCount, axis=0)
+    fullFab = colSums[1]*1.0/colSums[0]
+    tempEsts = [(colSums[1]-sitesCount[block][1])*1.0/(colSums[0]-sitesCount[block][0]) for block in range(numBlocks)]
+    jackknifeFabEst = numBlocks*fullFab - np.sum((1.0 - blockFracs)*tempEsts)
+    jackknifeFabVar = np.sum(1.0/(1.0/blockFracs-1) * ((fullFab/blockFracs)-((1/blockFracs-1)*tempEsts) - (numBlocks*fullFab) + np.sum((1-blockFracs)*tempEsts))**2)/numBlocks
+    return ((fullFab, jackknifeFabEst, jackknifeFabVar))
 
 ### First process the pos file to get positions where B is heterozygous.
 ### Assuming no header line
@@ -60,7 +81,7 @@ curSeq = ""
 oldAncScaffold = ""
 ancScaffold = ""
 ancSeq = ""
-sitesCount = np.zeros((2,))
+sitesCount = []
 ## Loop through the files.
 while True:
     for line in Afasta:
@@ -89,7 +110,7 @@ while True:
     ## First check that ancScaffold and curScaffold are the same
     if oldAncScaffold == oldScaffold:
         if curSeq != "" and oldScaffold in sitesDict:
-            processScaffold(oldAncScaffold, sitesDict[oldAncScaffold], curSeq, ancSeq, outfile, sitesCount)
+            processScaffold(oldAncScaffold, sitesDict[oldAncScaffold], curSeq, ancSeq, sitesCount, outfile)
         curSeq = ""
         ancSeq = ""
     else:
@@ -98,9 +119,15 @@ while True:
 
     if curScaffold == oldScaffold:
         break
-
+sitesCount = np.array(sitesCount)
 if args.computeStat:
-    print("F(A|B) = " + np.round(sitesCount[1]*1.0/sitesCount[0], 4))
-outfile.close()
+    estimates = blockJackknifeFab(sitesCount)
+    print("F(A|B) = " + str(estimates[0]))
+    print("Block Jackknife F(A|B) estimate = " + str(estimates[1]))
+    print("Block Jackknife F(A|B) variance = " + str(estimates[2]))
+
+
+if args.out != "":
+    outfile.close()
 Afasta.close()
 Ancfasta.close()
